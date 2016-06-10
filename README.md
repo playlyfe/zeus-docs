@@ -267,3 +267,35 @@ mutation PlayerActionPlay {
   }
 }
 ```
+
+# Advanced Concepts
+
+There are some basic concepts that must be understood while working with the API. The Playlyfe GraphQL API is compatible 
+with the [Relay Specification](https://facebook.github.io/relay/docs/graphql-relay-specification.html#content). Relay is a framework convention over the basic GraphQL specification that helps solve common problems like pagination, data mutation and data caching for clients. We decided to conform to this specification since to effectively solves many common scenarios and also ensures wider compatibility with the GraphQL-Relay eco-system that is growing. It is recommended to go through the relay specification to better understand the convention.
+
+Relay requires every object within the system to be uniquely identifiable with a Global ID. This Global ID is used when fetching data through connections and also as cache keys. We do have some noticable additions/difference from relay due to the nature of our system which I will explain below.
+
+## Global ID Structure
+
+Every object within the system has a unique Global ID which is represented as a JSON object(this is returned as the `id` key on the object, not to be confused with `sid`). The relay specification recommends base64 encoding global IDs to make them opaque and prevent clients from writing hacky code that messes with whatever convention the backend may follow for global IDs. 
+However this proves to be more of a limitation than a simplification in backend integration scenarios where the client often has a lot more context to be able to select specific objects. As a result we decided to make global IDs a transparent easily parseable and generatable object. The structure of a Global ID is as follows:
+
+- It is a json object
+- It contains a `type` key which specifies the type of the object
+- It contains an `id` key which corresponds to the `sid` of the object
+- It contains one or more other keys which specifies other parameters which uniquely identifies the object. Eg: A player is specified by `gameID`, `runtimeID` and a `id`. A runtime is specified via `gameID` and `id`. 
+
+## SIDs vs GlobalIDs
+
+**SID** stand for **Short ID**. Often when we are working with mutations we would like to create objects using simple Short IDs as Global IDs can be long and messy. However when we are updating or deleting objects it is simpler to pass a single GlobalID to identify the object that is being updated/deleted. As a result we use the following convention within our API.
+
+- All object creation is done using SID. Once the object is created you can fetch the Global ID of the object from the Mutation Payload.
+- All update and delete mutations select the object they operate on using Global IDs.
+
+
+
+
+
+
+
+
